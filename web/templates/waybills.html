@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>运单库</h1>
+
+<div class="panel">
+  <h2 style="margin-top:0">批量导入</h2>
+  <form method="post" action="{{ url_for('waybills_import') }}" enctype="multipart/form-data">
+    <textarea name="numbers" placeholder="每行一个单号，例如&#10;YP2600000001&#10;UK700000001&#10;GMA-80000001&#10;BAD-NO-001（识别不了会单列）"></textarea>
+    <div class="row" style="margin-top:10px">
+      <input type="file" name="file" accept=".csv,.txt">
+      <button class="btn primary">导入并自动识别承运商</button>
+    </div>
+  </form>
+</div>
+
+<div class="panel">
+  <form method="get" class="row">
+    <input name="q" value="{{ q }}" placeholder="单号搜索" size="22">
+    <select name="carrier">
+      <option value="">全部承运商</option>
+      {% for c in carriers %}
+        <option value="{{ c.code }}" {{ 'selected' if carrier==c.code }}>{{ c.code }} · {{ c.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="status">
+      <option value="">全部状态</option>
+      {% for s in ['PENDING','PICKED_UP','IN_TRANSIT','CUSTOMS','OUT_FOR_DELIVERY','DELIVERED','RETURNED','EXCEPTION','UNKNOWN'] %}
+        <option value="{{ s }}" {{ 'selected' if status==s }}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn">筛选</button>
+    <span class="muted">共 {{ total }} 单</span>
+  </form>
+</div>
+
+<div class="panel">
+<table>
+<thead><tr><th>单号</th><th>承运商</th><th>当前状态</th><th>调度</th>
+  <th>轮询次数</th><th>失败</th><th>下次查询</th><th>最近成功</th><th></th></tr></thead>
+<tbody>
+{% for w in waybills %}
+<tr>
+  <td class="mono"><a href="{{ url_for('waybill_detail', waybill_id=w.id) }}">{{ w.tracking_no }}</a></td>
+  <td>{{ w.carrier_code }}</td>
+  <td><span class="chip {{ 'ok' if w.current_status=='DELIVERED' else '' }}">{{ w.current_status }}</span></td>
+  <td>{% if w.active %}<span class="chip"><span class="dot g"></span>在途</span>
+      {% else %}<span class="chip off">终态归档</span>{% endif %}</td>
+  <td>{{ w.poll_count }}</td>
+  <td>{% if w.fail_count %}<span class="chip warn">{{ w.fail_count }}</span>{% else %}0{% endif %}</td>
+  <td class="mono">{{ w.next_poll_at|localtime }}</td>
+  <td class="mono">{{ w.last_success_at|localtime if w.last_success_at else '—' }}</td>
+  <td><a class="btn" href="{{ url_for('waybill_detail', waybill_id=w.id) }}">轨迹</a></td>
+</tr>
+{% else %}<tr><td colspan="9" class="muted">暂无运单，请先导入</td></tr>{% endfor %}
+</tbody>
+</table>
+<div class="pager" style="margin-top:12px">
+  {% if page_no > 1 %}<a class="btn" href="?page={{ page_no-1 }}&q={{ q }}&carrier={{ carrier }}&status={{ status }}">上一页</a>{% endif %}
+  <span class="muted">第 {{ page_no }} 页</span>
+  {% if waybills|length == page_size %}<a class="btn" href="?page={{ page_no+1 }}&q={{ q }}&carrier={{ carrier }}&status={{ status }}">下一页</a>{% endif %}
+</div>
+</div>
+
+<div class="panel">
+  <h2>识别不了的单号（{{ unrecognized|length }}）</h2>
+  <table>
+    <thead><tr><th>单号</th><th>原因</th><th>导入批次</th><th>时间</th></tr></thead>
+    <tbody>
+    {% for u in unrecognized %}
+      <tr><td class="mono">{{ u.tracking_no }}</td><td><span class="chip crit">{{ u.reason }}</span></td>
+        <td class="mono">{{ u.import_batch }}</td><td class="mono">{{ u.created_at|localtime }}</td></tr>
+    {% else %}<tr><td colspan="4" class="muted">无</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <h2>导入批次</h2>
+  <table>
+    <thead><tr><th>批次</th><th>文件</th><th>总数</th><th>已识别</th><th>未识别</th><th>时间</th></tr></thead>
+    <tbody>
+    {% for b in batches %}
+      <tr><td class="mono">{{ b.id }}</td><td>{{ b.filename }}</td><td>{{ b.total }}</td>
+        <td><span class="chip ok">{{ b.recognized }}</span></td>
+        <td><span class="chip {{ 'crit' if b.unrecognized else 'off' }}">{{ b.unrecognized }}</span></td>
+        <td class="mono">{{ b.created_at|localtime }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

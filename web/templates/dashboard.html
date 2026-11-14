@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>任务调度总览</h1>
+<div class="grid cards">
+  <div class="card kpi"><div class="num">{{ stats.total }}</div><div class="lbl">运单总数</div></div>
+  <div class="card kpi"><div class="num">{{ stats.active }}</div><div class="lbl">在途（调度中）</div></div>
+  <div class="card kpi"><div class="num">{{ stats.delivered }}</div><div class="lbl">已签收</div></div>
+  <div class="card kpi"><div class="num" style="color:var(--warn)">{{ stats.due }}</div><div class="lbl">当前到期待查</div></div>
+  <div class="card kpi"><div class="num" style="color:var(--crit)">{{ stats.open_alerts }}</div><div class="lbl">未解决告警</div></div>
+</div>
+
+<h2>按状态分布</h2>
+<div class="panel">
+  <div class="row">
+    {% for r in by_status %}
+      <span class="chip">{{ r.current_status }} · {{ r.c }}</span>
+    {% else %}<span class="muted">暂无数据</span>{% endfor %}
+  </div>
+</div>
+
+<h2>承运商运行状态</h2>
+<div class="panel">
+<table>
+  <thead><tr><th>承运商</th><th>启用</th><th>模式</th><th>限流 rps</th><th>解析版本</th>
+    <th>连续失败</th><th>熔断至</th></tr></thead>
+  <tbody>
+  {% for c in carriers %}
+    <tr>
+      <td><b>{{ c.code }}</b><div class="muted">{{ c.name }}</div></td>
+      <td>{% if c.enabled %}<span class="chip ok"><span class="dot g"></span>启用</span>
+          {% else %}<span class="chip off"><span class="dot grey"></span>停用</span>{% endif %}</td>
+      <td><span class="chip">{{ c.mode }}</span></td>
+      <td class="mono">{{ c.rate_rps }}</td>
+      <td class="mono">{{ c.parser_version }}</td>
+      <td>{% if c.consecutive_fails >= 5 %}<span class="chip crit">{{ c.consecutive_fails }}</span>
+          {% elif c.consecutive_fails %}<span class="chip warn">{{ c.consecutive_fails }}</span>
+          {% else %}<span class="chip ok">0</span>{% endif %}</td>
+      <td class="mono">{{ c.circuit_open_until|localtime if c.circuit_open_until else '—' }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

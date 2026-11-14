@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>运单 {{ wb.tracking_no }}</h1>
+<div class="grid cards">
+  <div class="card kpi"><div class="num">{{ wb.current_status }}</div><div class="lbl">当前规范状态</div></div>
+  <div class="card kpi"><div class="num">{{ wb.poll_count }}</div><div class="lbl">轮询次数</div></div>
+  <div class="card kpi"><div class="num">{{ nodes|selectattr('retracted')|list|length }}</div><div class="lbl">已撤回节点</div></div>
+  <div class="card kpi"><div class="num">{{ wb.fail_count }}</div><div class="lbl">累计失败</div></div>
+</div>
+
+<div class="panel">
+  <h2 style="margin-top:0">统一轨迹节点（UTC 存储 / 规范状态码）</h2>
+  <div class="timeline">
+    {% for n in nodes %}
+    <div class="node {{ 'retracted' if n.retracted }}">
+      <b>{{ n.status }}</b>
+      <span class="chip">{{ n.uid }}</span>
+      {% if n.retracted %}<span class="chip crit">已撤回 {{ n.retracted_at|localtime }}</span>{% endif %}
+      <div class="muted mono">{{ n.event_time_utc|localtime }}（{{ n.event_time_utc }}）</div>
+      <div>{{ n.description }} · {{ n.location }}</div>
+    </div>
+    {% else %}<p class="muted">暂无节点</p>{% endfor %}
+  </div>
+</div>
+
+<div class="panel">
+  <h2>抓取日志（近 30 条）</h2>
+  <table>
+    <thead><tr><th>开始</th><th>结果</th><th>HTTP</th><th>尝试</th><th>见/增/撤</th>
+      <th>错误类型</th><th>信息</th></tr></thead>
+    <tbody>
+    {% for l in logs %}
+    <tr>
+      <td class="mono">{{ l.started_at|localtime }}</td>
+      <td>{% if l.ok %}<span class="chip ok">成功</span>{% else %}<span class="chip crit">失败</span>{% endif %}</td>
+      <td>{{ l.http_status or '—' }}</td><td>{{ l.attempt_no }}</td>
+      <td>{{ l.nodes_seen }}/{{ l.nodes_added }}/{{ l.nodes_retracted }}</td>
+      <td>{% if l.error_kind %}<span class="chip warn">{{ l.error_kind }}</span>{% else %}—{% endif %}</td>
+      <td class="muted">{{ l.error_message }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p><a class="btn" href="{{ url_for('waybills_page') }}">← 返回运单库</a></p>
+{% endblock %}

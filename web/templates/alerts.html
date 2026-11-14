@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>告警中心</h1>
+<div class="panel">
+<table>
+<thead><tr><th>时间</th><th>级别</th><th>类型</th><th>承运商</th><th>运单</th>
+  <th>内容</th><th>状态</th><th></th></tr></thead>
+<tbody>
+{% for a in alerts %}
+<tr>
+  <td class="mono">{{ a.created_at|localtime }}</td>
+  <td><span class="chip {{ 'crit' if a.severity=='critical' else 'warn' if a.severity=='warning' else '' }}">{{ a.severity }}</span></td>
+  <td class="mono">{{ a.kind }}</td>
+  <td>{{ a.carrier_code or '—' }}</td>
+  <td class="mono">{% if a.tracking_no %}<a href="{{ url_for('waybill_detail', waybill_id=a.waybill_id) }}">{{ a.tracking_no }}</a>{% else %}—{% endif %}</td>
+  <td>{{ a.message }}</td>
+  <td>{% if a.resolved_at %}<span class="chip off">已解决 {{ a.resolved_at|localtime }}</span>
+      {% else %}<span class="chip crit"><span class="dot r"></span>未解决</span>{% endif %}</td>
+  <td>{% if not a.resolved_at %}
+    <form method="post" action="{{ url_for('alert_resolve', alert_id=a.id) }}">
+      <button class="btn">标记解决</button>
+    </form>{% endif %}</td>
+</tr>
+{% else %}<tr><td colspan="8" class="muted">暂无告警 🎉</td></tr>{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>导入结果</h1>
+<div class="grid cards">
+  <div class="card kpi"><div class="num">{{ result.total }}</div><div class="lbl">提交单号</div></div>
+  <div class="card kpi"><div class="num" style="color:var(--ok)">{{ result.recognized }}</div><div class="lbl">已识别入运单库</div></div>
+  <div class="card kpi"><div class="num" style="color:var(--crit)">{{ result.unrecognized }}</div><div class="lbl">无法识别（已单列）</div></div>
+  <div class="card kpi"><div class="num">{{ result.duplicates }}</div><div class="lbl">重复跳过</div></div>
+</div>
+<p>批次号：<span class="mono">{{ result.batch_id }}</span></p>
+<p><a class="btn primary" href="{{ url_for('waybills_page') }}">前往运单库查看</a></p>
+{% endblock %}

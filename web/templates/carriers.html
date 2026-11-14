@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>承运商配置</h1>
+<div class="panel">
+<table>
+<thead><tr><th>代码</th><th>名称</th><th>接入模式</th><th>登录</th><th>限流 rps</th>
+  <th>解析版本</th><th>状态</th><th>操作</th></tr></thead>
+<tbody>
+{% for c in carriers %}
+<tr>
+  <td class="mono"><b>{{ c.code }}</b></td>
+  <td>{{ c.name }}<div class="muted mono" style="font-size:12px">{{ c.base_url }}</div></td>
+  <td><span class="chip">{{ c.mode }}</span></td>
+  <td>{% if c.needs_login %}{{ c.login_user }}<div class="muted">需登录</div>
+      {% else %}<span class="muted">免登</span>{% endif %}</td>
+  <td>
+    <form method="post" action="{{ url_for('carrier_rate', code=c.code) }}" class="row">
+      <input name="rate_rps" value="{{ c.rate_rps }}" size="5" step="0.1" type="number">
+      <button class="btn">保存</button>
+    </form>
+  </td>
+  <td>
+    <form method="post" action="{{ url_for('carrier_parser', code=c.code) }}" class="row">
+      <select name="parser_version">
+        <option value="v1" {{ 'selected' if c.parser_version=='v1' }}>v1 旧版</option>
+        <option value="v2" {{ 'selected' if c.parser_version=='v2' }}>v2 新版</option>
+      </select>
+      <button class="btn">切换</button>
+    </form>
+  </td>
+  <td>
+    {% if c.enabled %}<span class="chip ok">启用中</span>
+    {% else %}<span class="chip off">已停用</span>{% endif %}
+    {% if c.circuit_open_until %}<div class="chip crit" style="margin-top:4px">熔断中</div>{% endif %}
+  </td>
+  <td class="row">
+    <form method="post" action="{{ url_for('carrier_toggle', code=c.code) }}">
+      <button class="btn">{{ '停用' if c.enabled else '启用' }}</button>
+    </form>
+    <form method="post" action="{{ url_for('carrier_reset_circuit', code=c.code) }}">
+      <button class="btn">解除熔断</button>
+    </form>
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+<p class="muted">说明：解析版本用于应对承运商改版（theta 演示）；停用后该家 worker 不再领取任务，不影响其他家。</p>
+{% endblock %}

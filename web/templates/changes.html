@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>轨迹变更流水（近 300 条）</h1>
+<div class="panel">
+<table>
+<thead><tr><th>时间</th><th>运单</th><th>变更类型</th><th>节点 uid</th>
+  <th>状态变化</th></tr></thead>
+<tbody>
+{% for c in changes %}
+<tr>
+  <td class="mono">{{ c.changed_at|localtime }}</td>
+  <td class="mono"><a href="{{ url_for('waybill_detail', waybill_id=c.waybill_id) }}">{{ c.tracking_no }}</a></td>
+  <td>{% if c.change_type=='added' %}<span class="chip ok">新增节点</span>
+      {% elif c.change_type=='retracted' %}<span class="chip crit">节点撤回</span>
+      {% else %}<span class="chip warn">状态推进</span>{% endif %}</td>
+  <td class="mono">{{ c.node_uid or '—' }}</td>
+  <td>{% if c.from_status %}{{ c.from_status }} → <b>{{ c.to_status }}</b>
+      {% else %}{{ c.to_status or '—' }}{% endif %}</td>
+</tr>
+{% else %}<tr><td colspan="5" class="muted">暂无变更</td></tr>{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}

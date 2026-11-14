@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}跨境小包采集控制台{% endblock %}</title>
+<style>
+:root{
+  --bg:#0f1420; --panel:#171e2e; --panel2:#1d2740; --line:#283350;
+  --text:#e6ebf5; --muted:#8fa0bd; --accent:#4f8cff; --ok:#2fbf71;
+  --warn:#e8a13a; --crit:#ef5b6b; --chip:#243150;
+}
+@media (prefers-color-scheme: light){
+  :root{ --bg:#f4f6fb; --panel:#fff; --panel2:#f0f3fa; --line:#dde3ee;
+    --text:#1c2436; --muted:#66738c; --accent:#2f6fe0; --ok:#1e9e58;
+    --warn:#c47e17; --crit:#d33447; --chip:#e8eef9; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+header.top{display:flex;align-items:center;gap:22px;padding:0 24px;height:56px;
+  background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header.top .brand{font-weight:700;font-size:16px;white-space:nowrap}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav a{color:var(--muted);text-decoration:none;padding:7px 13px;border-radius:8px;font-weight:600}
+nav a:hover{background:var(--panel2);color:var(--text)}
+nav a.active{background:var(--accent);color:#fff}
+main{max-width:1280px;margin:24px auto;padding:0 20px}
+h1{font-size:20px;margin:0 0 16px} h2{font-size:16px;margin:22px 0 10px}
+.grid{display:grid;gap:14px}.grid.cards{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.kpi .num{font-size:28px;font-weight:700}.kpi .lbl{color:var(--muted);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+tr:hover td{background:var(--panel2)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px;overflow-x:auto}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--chip);
+  font-size:12px;font-weight:600;white-space:nowrap}
+.chip.ok{background:rgba(47,191,113,.16);color:var(--ok)}
+.chip.warn{background:rgba(232,161,58,.16);color:var(--warn)}
+.chip.crit{background:rgba(239,91,107,.16);color:var(--crit)}
+.chip.off{color:var(--muted)}
+.btn{display:inline-block;border:1px solid var(--line);background:var(--panel2);color:var(--text);
+  padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;text-decoration:none}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+input,select,textarea{background:var(--panel2);border:1px solid var(--line);color:var(--text);
+  border-radius:8px;padding:7px 10px;font:inherit}
+textarea{width:100%;min-height:160px;font-family:Consolas,monospace}
+.muted{color:var(--muted)} .mono{font-family:Consolas,monospace}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+a{color:var(--accent)}
+.timeline{border-left:2px solid var(--line);margin-left:8px;padding-left:18px}
+.timeline .node{position:relative;padding:8px 0}
+.timeline .node::before{content:"";position:absolute;left:-25px;top:14px;width:10px;height:10px;
+  border-radius:50%;background:var(--accent)}
+.timeline .node.retracted::before{background:var(--crit)}
+.pager a{margin-right:8px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.dot.g{background:var(--ok)}.dot.r{background:var(--crit)}.dot.y{background:var(--warn)}.dot.grey{background:var(--muted)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">📦 跨境小包轨迹采集</div>
+  <nav>
+    <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint=='dashboard' }}">任务调度</a>
+    <a href="{{ url_for('carriers_page') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('carrier') }}">承运商配置</a>
+    <a href="{{ url_for('waybills_page') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('waybill') }}">运单库</a>
+    <a href="{{ url_for('changes_page') }}" class="{{ 'active' if request.endpoint=='changes_page' }}">轨迹变更</a>
+    <a href="{{ url_for('alerts_page') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('alert') }}">告警</a>
+  </nav>
+</header>
+<main>{% block body %}{% endblock %}</main>
+</body>
+</html>
